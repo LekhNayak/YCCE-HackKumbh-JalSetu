@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { splitForSpeech } from "./speech";
 import { depthOf, fmtNum } from "./format";
+import { fit } from "./photo";
 
 describe("splitForSpeech", () => {
   it("splits on sentence ends, including the Devanagari danda", () => {
@@ -14,6 +15,17 @@ describe("splitForSpeech", () => {
   it("breaks long sentences at commas", () => {
     const long = "Clean the roof, clear the downpipes, check the first flush, wash the filter, remove silt, test with a bucket of water";
     expect(splitForSpeech(long, 40, 40).length).toBeGreaterThan(1);
+  });
+});
+
+describe("photo size", () => {
+  it("shrinks the longer side to 1600 and keeps the shape", () => {
+    expect(fit(4000, 3000)).toEqual({ w: 1600, h: 1200 });
+    expect(fit(3000, 4000)).toEqual({ w: 1200, h: 1600 });
+  });
+  it("never enlarges a small photo", () => {
+    expect(fit(800, 600)).toEqual({ w: 800, h: 600 });
+    expect(fit(5000, 1)).toEqual({ w: 1600, h: 1 });
   });
 });
 

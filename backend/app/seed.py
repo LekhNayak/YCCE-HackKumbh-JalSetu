@@ -10,6 +10,7 @@ import argparse
 import random
 from datetime import date, datetime, time, timedelta
 
+from . import clock
 from .db import Base, SessionLocal, engine
 from .models import (Alert, BorewellReading, ForumReply, ForumThread, LeakTicket, RwhCheck, RwhUnit, SavingLog,
                      Society, SupplyLog, TankerTrip, User, Vote, Ward)
@@ -42,8 +43,8 @@ def seed(reset: bool = False, rnd_seed: int = 7):
         Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     rnd = random.Random(rnd_seed)
-    today = date.today()
-    nowt = datetime.now().replace(second=0, microsecond=0)
+    today = clock.today()
+    nowt = clock.now().replace(second=0)
     db = SessionLocal()
 
     ward = Ward(name={"en": "Katol Ward 3 (demo)", "mr": "काटोल प्रभाग 3 (डेमो)", "hi": "काटोल वार्ड 3 (डेमो)"},

@@ -9,9 +9,21 @@ BACKEND = Path(__file__).resolve().parents[1]
 load_dotenv(BACKEND / ".env")
 
 
+DEV_SECRET = "dev-only-change-me"          # public in this repo: fine on your own PC, refused in production
+
+
 def env(name, default=None):
     v = os.getenv(name)
     return v if v not in (None, "") else default
+
+
+def _database_url():
+    """Neon, Supabase and Vercel hand out postgres:// or postgresql:// URLs; SQLAlchemy needs the psycopg 3 driver named."""
+    url = env("DATABASE_URL", f"sqlite:///{(BACKEND / 'jalsetu.db').as_posix()}")
+    for scheme in ("postgres://", "postgresql://"):
+        if url.startswith(scheme):
+            return "postgresql+psycopg://" + url[len(scheme):]
+    return url
 
 
 def _groq_keys():
@@ -22,8 +34,9 @@ def _groq_keys():
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path = Path(env("JALSETU_DATA_DIR", BACKEND / "data"))
-    database_url: str = env("DATABASE_URL", f"sqlite:///{(BACKEND / 'jalsetu.db').as_posix()}")
-    secret_key: str = env("JALSETU_SECRET", "dev-only-change-me")
+    production: bool = env("JALSETU_ENV") == "production" or env("VERCEL") == "1"
+    database_url: str = _database_url()
+    secret_key: str = env("JALSETU_SECRET", DEV_SECRET)
     uploads_dir: Path = Path(env("UPLOADS_DIR", BACKEND / "uploads"))
     frontend_dist: Path = BACKEND.parent / "frontend" / "dist"
     serve_frontend: bool = env("SERVE_FRONTEND", "0") == "1"
@@ -55,4 +68,17 @@ class Settings:
     offline: bool = env("JALSETU_OFFLINE", "0") == "1"
 
 
+def check_production(s: Settings):
+    """Refuse to run publicly with settings that are only safe on a developer's PC."""
+    problems = []
+    if s.secret_key in (DEV_SECRET, "change-me") or len(s.secret_key) < 24:
+        problems.append("JALSETU_SECRET must be set to a long random value")
+    if s.database_url.startswith("sqlite"):
+        problems.append("DATABASE_URL must point to Postgres (a local SQLite file is not kept)")
+    if problems:
+        raise RuntimeError("JalSetu is not configured for production: " + "; ".join(problems))
+
+
 settings = Settings()
+if settings.production:
+    check_production(settings)

@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8
+# scripts/build_data.py and import_forecast.py only
+pandas>=2.0

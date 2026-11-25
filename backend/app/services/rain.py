@@ -3,6 +3,7 @@ from datetime import date, timedelta
 
 import httpx
 
+from .. import clock
 from ..config import settings
 from .realdata import load
 
@@ -10,7 +11,7 @@ _cache: dict = {}
 
 
 def yearly_rain(lat: float, lon: float, today: date | None = None) -> dict:
-    today = today or date.today()
+    today = today or clock.today()
     key = (round(lat, 2), round(lon, 2), today.isoformat())
     if key in _cache:
         return _cache[key]

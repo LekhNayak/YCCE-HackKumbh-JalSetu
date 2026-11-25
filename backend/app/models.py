@@ -4,14 +4,11 @@ Every seeded row has is_demo=True so the UI can label it "Demo data".
 """
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from .clock import now
 from .db import Base
-
-
-def now():
-    return datetime.now().replace(microsecond=0)
 
 
 class Ward(Base):
@@ -134,6 +131,15 @@ class LeakTicket(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     history: Mapped[list] = mapped_column(JSON, default=list)  # [{status, at, by}]
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class Photo(Base):
+    """A leak photo. Served at /uploads/<name>."""
+    __tablename__ = "photo"
+    name: Mapped[str] = mapped_column(String(40), primary_key=True)
+    mime: Mapped[str] = mapped_column(String(20))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
 
 
 class ForumThread(Base):

@@ -1,5 +1,4 @@
 """Leak and wastage reports, routed to the ward's water utility."""
-import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -8,17 +7,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..auth import current_user, require
-from ..config import settings
 from ..db import get_db
 from ..models import LeakTicket, User, Ward, now
-from ..services import alerts
+from ..services import alerts, photos
 from ..services.community import point_in_polygon, sla_state
 
 router = APIRouter(prefix="/api", tags=["leaks"])
 
 CATEGORIES = ("pipe_burst", "overflow", "open_tap", "illegal", "drain")
 FLOW = {"open": "assigned", "assigned": "in_progress", "in_progress": "resolved"}
-MAX_PHOTO = 6 * 1024 * 1024
 
 
 def ticket_out(t: LeakTicket, at: datetime):
@@ -44,15 +41,12 @@ async def report(category: str = Form(...), lat: float = Form(...), lon: float =
         raise HTTPException(422, f"category must be one of {CATEGORIES}")
     fname = None
     if photo is not None and photo.filename:
-        if not (photo.content_type or "").startswith("image/"):
-            raise HTTPException(422, "photo must be an image")
-        data = await photo.read()
-        if len(data) > MAX_PHOTO:
-            raise HTTPException(413, "photo larger than 6 MB")
-        ext = {"image/png": "png", "image/webp": "webp"}.get(photo.content_type, "jpg")
-        fname = f"{uuid.uuid4().hex}.{ext}"
-        settings.uploads_dir.mkdir(parents=True, exist_ok=True)
-        (settings.uploads_dir / fname).write_bytes(data)
+        data = await photo.read(photos.MAX_PHOTO + 1)
+        if len(data) > photos.MAX_PHOTO:
+            raise HTTPException(413, "photo larger than 4 MB")
+        fname = photos.store(db, data)
+        if fname is None:
+            raise HTTPException(422, "photo must be a JPEG, PNG or WebP image")
     ward = find_ward(db, lon, lat)
     at = now()
     t = LeakTicket(reporter_id=user.id, society_id=user.society_id, ward_id=ward.id if ward else None, lat=lat, lon=lon,

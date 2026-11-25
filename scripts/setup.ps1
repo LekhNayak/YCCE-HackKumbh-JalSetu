@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Write-Host "Installing backend packages..."
-python -m pip install -r "$root\backend\requirements.txt"
+python -m pip install -r "$root\backend\requirements-dev.txt"
 Write-Host "Installing frontend packages..."
 Push-Location "$root\frontend"; npm install; Pop-Location
 if (-not (Test-Path "$root\backend\.env")) {

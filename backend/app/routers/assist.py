@@ -1,8 +1,10 @@
 """Read-aloud (text-to-speech) and the site-guide chat."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
+from ..auth import current_user
+from ..models import User
 from ..services import chat as chat_service
 from ..services.speech import gnani
 
@@ -15,7 +17,7 @@ class TtsIn(BaseModel):
 
 
 @router.post("/speech/tts")
-def tts(body: TtsIn):
+def tts(body: TtsIn, _: User = Depends(current_user)):
     if not gnani.enabled():
         raise HTTPException(501, "speech not configured")
     try:
@@ -35,7 +37,7 @@ class ChatIn(BaseModel):
 
 
 @router.post("/chat")
-def chat(body: ChatIn):
+def chat(body: ChatIn, _: User = Depends(current_user)):
     if body.lang not in ("en", "mr", "hi"):
         body.lang = "en"
     return chat_service.chat(body)

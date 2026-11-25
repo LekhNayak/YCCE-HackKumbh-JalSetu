@@ -1,11 +1,10 @@
 """Meta, demo personas, sign-in."""
-from datetime import date
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import clock
 from ..auth import current_user, make_token
 from ..config import settings
 from ..db import get_db
@@ -32,7 +31,7 @@ def meta():
         data = realdata.load("manifest")
     except realdata.DataMissing:
         data = None
-    return {"app": "JalSetu", "today": date.today().isoformat(), "languages": list(settings.languages),
+    return {"app": "JalSetu", "today": clock.today().isoformat(), "languages": list(settings.languages),
             "features": {"chat": "groq" if settings.groq_api_keys else "guide", "speech": gnani.enabled(),
                          "speech_languages": ["en", "mr", "hi"] if gnani.enabled() else [],
                          "whatsapp": "twilio" if settings.twilio_sid and settings.alert_test_to else "simulated"},

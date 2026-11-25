@@ -5,6 +5,7 @@ society sees it labelled as a district outlook, with its issue date, next to its
 """
 from datetime import date
 
+from .. import clock
 from .realdata import load
 
 FALL_M = 0.3          # a 30-day median fall of this much (with the whole 80% range below today) counts as "falling"
@@ -26,7 +27,7 @@ def direction(h):
 
 def outlook(today: date | None = None, run: dict | None = None) -> dict:
     run = run or load("forecast_run")
-    today = today or date.today()
+    today = today or clock.today()
     hs = {}
     for k in HORIZONS:
         h = run["horizons"].get(k)

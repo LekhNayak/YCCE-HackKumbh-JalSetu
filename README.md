@@ -58,7 +58,7 @@ An ensemble of a Temporal Fusion Transformer and LightGBM (with no-change and se
  forecast engine export ─┤   scripts/import_forecast.py
  CHIRPS / district data ─┘   scripts/build_data.py        ──► backend/data/*.json  (real data)
                                                                   │
- residents / secretary / ward officer ──► React PWA ──► FastAPI ──┤──► SQLite (Postgres/Supabase via DATABASE_URL)
+ residents / secretary / ward officer ──► React PWA ──► FastAPI ──┤──► SQLite (Postgres via DATABASE_URL)
                                           (EN/MR/HI)               ├──► trust check · tanker rules · early warning · ward routing
                                                                    ├──► alerts outbox ──► Twilio WhatsApp (optional)
                                                                    ├──► Gnani text-to-speech (optional) · Groq site guide (optional)
@@ -114,11 +114,19 @@ cd frontend; npm run build           # type check + production build (PWA)
 ```
 
 ## Deploy
-- **Frontend:** `npm run build`, then any static host (e.g. Vercel). Proxy `/api` and `/uploads` to the API.
-- **API:**
-  - Run `uvicorn app.main:app` (e.g. on Render).
-  - For Postgres (e.g. Supabase), set `DATABASE_URL=postgresql+psycopg://...` and install `psycopg`.
-  - Or serve everything from one process with `SERVE_FRONTEND=1`.
+Two Vercel projects from this repo and a Neon Postgres database:
+
+1. **Database.** Create a Neon project (Singapore) and copy its *pooled* connection string. Load the demo ward with `scripts\seed_remote.ps1`; run it again just before a demo, because the dates are relative to today.
+2. **API project.** Root Directory `backend` (FastAPI is detected from `app/main.py`). Environment variables:
+   - `DATABASE_URL`: the pooled connection string
+   - `JALSETU_SECRET`: a long random value (`python -c "import secrets; print(secrets.token_urlsafe(32))"`)
+   - `JALSETU_ENV`: `production`
+   - Groq, Gnani and Twilio keys are optional, as they are locally.
+3. **Web project.** Put the API project's address in `frontend/vercel.json`, then create a project with Root Directory `frontend`. It forwards `/api` and `/uploads` to the API, so users need only this one address.
+
+In production the API refuses to start with the development secret or SQLite, and it does not create or seed tables. Leak photos are stored in the database, and all times are Indian time wherever the server runs.
+
+Without Vercel: `npm run build`, then `SERVE_FRONTEND=1 uvicorn app.main:app` serves the app and the API from one process.
 
 ## Project layout
 ```

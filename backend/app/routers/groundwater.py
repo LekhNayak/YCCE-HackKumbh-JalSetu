@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import clock
 from ..auth import can_see_society, current_user, require
 from ..db import get_db
 from ..models import BorewellReading, Society, TankerTrip, User, now
@@ -17,14 +18,14 @@ router = APIRouter(prefix="/api", tags=["groundwater"])
 
 @router.get("/groundwater/outlook")
 def outlook():
-    return forecast.outlook(date.today())
+    return forecast.outlook(clock.today())
 
 
 @router.get("/groundwater/district")
 def district():
     run = realdata.load("forecast_run")
     latest = realdata.load("district_nagpur")
-    return {"outlook": forecast.outlook(date.today(), run),
+    return {"outlook": forecast.outlook(clock.today(), run),
             "observed": run["observed"],                 # the series the forecast was made from (same data version)
             "latest_district": {k: latest[k] for k in ("data_version", "last_date", "level_m", "daily_recent")}}
 
@@ -73,8 +74,8 @@ class ReadingIn(BaseModel):
 @router.post("/borewell-readings")
 def add_reading(body: ReadingIn, user: User = Depends(require("resident", "society_admin")), db: Session = Depends(get_db)):
     soc = db.get(Society, user.society_id)
-    day = body.day or date.today()
-    if day > date.today():
+    day = body.day or clock.today()
+    if day > clock.today():
         raise HTTPException(422, "a reading cannot be in the future")
     if db.scalar(select(BorewellReading).where(BorewellReading.society_id == soc.id, BorewellReading.day == day)):
         raise HTTPException(409, "this borewell already has a reading for that day")
@@ -82,7 +83,7 @@ def add_reading(body: ReadingIn, user: User = Depends(require("resident", "socie
                       .order_by(BorewellReading.day.desc())).first()
     try:
         verdict = trust.check(body.depth_m, day, (prev.day, prev.depth_m) if prev else None, soc.lat, soc.lon,
-                              forecast.outlook(date.today()))
+                              forecast.outlook(clock.today()))
     except trust.ReadingInvalid as e:
         raise HTTPException(422, str(e))
     r = BorewellReading(society_id=soc.id, user_id=user.id, day=day, depth_m=round(body.depth_m, 2), **verdict)
@@ -101,8 +102,8 @@ def run_society_checks(db: Session, soc: Society) -> list:
     made = []
     latest = db.scalars(select(BorewellReading).where(BorewellReading.society_id == soc.id)
                         .order_by(BorewellReading.day.desc())).first()
-    out = forecast.outlook(date.today())
-    for w in forecast.early_warnings(soc, date.today(), latest_reading_depth=latest.depth_m if latest else None):
+    out = forecast.outlook(clock.today())
+    for w in forecast.early_warnings(soc, clock.today(), latest_reading_depth=latest.depth_m if latest else None):
         a = alerts.emit(db, w["kind"], {"society": soc.name, **w["params"]}, society_id=soc.id, ward_id=soc.ward_id,
                         dedupe_key=f"{w['kind']}:{soc.id}:{out['issue_date']}")
         if a:
@@ -126,4 +127,4 @@ def run_checks(user: User = Depends(require("society_admin", "ward_officer")), d
     for soc in db.scalars(q).all():
         made += run_society_checks(db, soc)
     db.commit()
-    return {"created": made, "forecast_stale": forecast.outlook(date.today())["stale"]}
+    return {"created": made, "forecast_stale": forecast.outlook(clock.today())["stale"]}

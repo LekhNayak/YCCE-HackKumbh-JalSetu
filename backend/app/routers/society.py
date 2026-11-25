@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from .. import clock
 from ..auth import can_see_society, current_user, require
 from ..db import get_db
 from ..models import Alert, BorewellReading, RwhCheck, RwhUnit, SavingLog, Society, SupplyLog, TankerTrip, User, now
@@ -76,8 +77,8 @@ def add_supply(body: SupplyIn, user: User = Depends(require("resident", "society
         dup = db.scalar(select(SupplyLog).where(SupplyLog.client_id == body.client_id))
         if dup:
             return {"id": dup.id, "duplicate": True}
-    day = body.day or date.today()
-    if day > date.today() or day < date.today() - timedelta(days=7):
+    day = body.day or clock.today()
+    if day > clock.today() or day < clock.today() - timedelta(days=7):
         raise HTTPException(422, "day must be within the last 7 days")
     same = db.scalar(select(SupplyLog).where(SupplyLog.user_id == user.id, SupplyLog.day == day))
     if same:                     # one entry per person per day: a second tap corrects the first
@@ -99,7 +100,7 @@ def add_supply(body: SupplyIn, user: User = Depends(require("resident", "society
 @router.get("/societies/{society_id}/supply")
 def supply(society_id: int, days: int = 60, user: User = Depends(current_user), db: Session = Depends(get_db)):
     can_see_society(user, society_id, db)
-    out, pct = supply_days(db, society_id, min(max(days, 7), 120), date.today())
+    out, pct = supply_days(db, society_id, min(max(days, 7), 120), clock.today())
     return {"days": out, "water_days_pct": pct}
 
 
@@ -135,7 +136,7 @@ def add_tanker(body: TankerIn, user: User = Depends(require("society_admin")), d
 
 class ArrivedIn(BaseModel):
     at: datetime | None = None
-    client_id: str | None = None
+    client_id: str | None = Field(default=None, max_length=64)
 
 
 @router.post("/tankers/{trip_id}/arrived")
@@ -157,7 +158,7 @@ def tanker_arrived(trip_id: int, body: ArrivedIn | None = None, user: User = Dep
 @router.get("/societies/{society_id}/dashboard")
 def dashboard(society_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
     soc = can_see_society(user, society_id, db)
-    today = date.today()
+    today = clock.today()
     days, pct = supply_days(db, society_id, 30, today)
     mine_today = db.scalar(select(SupplyLog).where(SupplyLog.user_id == user.id, SupplyLog.day == today))
     tk = tankers(society_id, user, db)

@@ -1,21 +1,26 @@
 """JalSetu API: community water portal (supply, tankers, groundwater + forecast, rainwater, leaks, community)."""
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from .config import settings
-from .db import SessionLocal, init_db
-from .models import Ward
+from .db import SessionLocal, get_db, init_db
+from .models import Photo, Ward
 from .routers import assist, community, core, groundwater, leaks, rwh, society, ward
+from .services.photos import MIME, NAME_RE
 from .services.realdata import DataMissing
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.production:                     # tables and demo data are loaded once, from a PC (scripts/seed_remote.ps1)
+        yield
+        return
     init_db()
     with SessionLocal() as db:
         empty = db.scalar(select(Ward.id).limit(1)) is None
@@ -36,13 +41,35 @@ def data_missing(_: Request, exc: DataMissing):
     return JSONResponse({"detail": str(exc), "code": "data_not_built"}, status_code=503)
 
 
-settings.uploads_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.uploads_dir), name="uploads")
+@app.middleware("http")
+async def never_cache_answers(request: Request, call_next):
+    """API answers depend on who is signed in: no CDN may keep them, and the app's offline copy is kept per user."""
+    res = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        res.headers.setdefault("Cache-Control", "private, no-store")
+        res.headers.add_vary_header("Authorization")
+    return res
+
+
+@app.get("/uploads/{name}", include_in_schema=False)
+def uploaded_photo(name: str, db: Session = Depends(get_db)):
+    if not NAME_RE.match(name):
+        raise HTTPException(404, "not found")
+    headers = {"Cache-Control": "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff"}
+    p = db.get(Photo, name)
+    if p is not None:
+        return Response(content=p.data, media_type=p.mime, headers=headers)
+    f = settings.uploads_dir / name             # photos saved on disk by an earlier local version
+    if f.is_file():
+        return FileResponse(f, media_type=MIME[name.rsplit(".", 1)[1]], headers=headers)
+    raise HTTPException(404, "not found")
+
 
 if settings.serve_frontend and settings.frontend_dist.exists():
+    _dist = settings.frontend_dist.resolve()
     app.mount("/assets", StaticFiles(directory=settings.frontend_dist / "assets"), name="assets")
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):
-        f = settings.frontend_dist / path
-        return FileResponse(f if path and f.is_file() else settings.frontend_dist / "index.html")
+        f = (_dist / path).resolve()                # "..%2f" must not reach files outside the built site (e.g. .env)
+        return FileResponse(f if path and f.is_relative_to(_dist) and f.is_file() else _dist / "index.html")

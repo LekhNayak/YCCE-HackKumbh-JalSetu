@@ -1,11 +1,12 @@
 """Ward officer view, alert outbox, district priority map."""
 from collections import Counter
-from datetime import date
+
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import clock
 from ..auth import current_user, require
 from ..db import get_db
 from ..models import Alert, BorewellReading, LeakTicket, Society, User, Ward, now
@@ -22,7 +23,7 @@ def overview(user: User = Depends(require("ward_officer")), db: Session = Depend
     at = now()
     socs = []
     for s in db.scalars(select(Society).where(Society.ward_id == ward.id).order_by(Society.id)).all():
-        _, pct = supply_days(db, s.id, 30, date.today())
+        _, pct = supply_days(db, s.id, 30, clock.today())
         tk = tankers(s.id, user, db)
         latest = db.scalars(select(BorewellReading).where(BorewellReading.society_id == s.id)
                             .order_by(BorewellReading.day.desc())).first()

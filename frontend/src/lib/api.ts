@@ -16,7 +16,7 @@ export async function api<T = unknown>(path: string, opts: RequestInit & { json?
   if (opts.json !== undefined) { headers["Content-Type"] = "application/json"; body = JSON.stringify(opts.json); }
   const res = await fetch(path, { ...opts, headers, body });
   if (!res.ok) {
-    let msg = res.statusText;
+    let msg = res.statusText || `Error ${res.status}`;          // HTTP/2 sends no status text
     try { msg = (await res.json()).detail ?? msg; } catch { /* not json */ }
     throw new ApiError(res.status, typeof msg === "string" ? msg : JSON.stringify(msg));
   }

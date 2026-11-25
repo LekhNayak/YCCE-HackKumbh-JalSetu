@@ -219,6 +219,7 @@
     },
     "photo": "Photo",
     "photo_hint": "Take or choose a photo",
+    "photo_bad": "This photo could not be read. Please use a JPEG or PNG photo.",
     "location": "Where is it?",
     "use_gps": "Use my location",
     "tap_map": "or tap the map",

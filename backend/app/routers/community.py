@@ -1,6 +1,6 @@
 """Tips, the best-practice forum and the community water-saving log."""
 import json
-from datetime import date, timedelta
+from datetime import timedelta
 from functools import lru_cache
 from pathlib import Path
 
@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from .. import clock
 from ..auth import current_user, require
 from ..db import get_db
 from ..models import ForumReply, ForumThread, SavingLog, Society, User, Vote
@@ -26,7 +27,7 @@ def tips_file():
 
 @router.get("/tips")
 def tips():
-    month = date.today().month
+    month = clock.today().month
     season = "summer" if month in (3, 4, 5) else "monsoon" if month in (6, 7, 8, 9) else "post_monsoon"
     items = tips_file()["tips"]
     return {"season": season, "tips": sorted(items, key=lambda t: (season not in t["seasons"], t["id"]))}
@@ -126,7 +127,7 @@ class SavingIn(BaseModel):
 def log_saving(body: SavingIn, user: User = Depends(require("resident", "society_admin")), db: Session = Depends(get_db)):
     if body.action not in SAVING_ACTIONS:
         raise HTTPException(422, "unknown action")
-    s = SavingLog(user_id=user.id, society_id=user.society_id, day=date.today(), action=body.action,
+    s = SavingLog(user_id=user.id, society_id=user.society_id, day=clock.today(), action=body.action,
                   litres=SAVING_ACTIONS[body.action] * body.times)
     db.add(s)
     db.commit()
@@ -135,7 +136,7 @@ def log_saving(body: SavingIn, user: User = Depends(require("resident", "society
 
 @router.get("/savings/leaderboard")
 def leaderboard(days: int = 30, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    since = date.today() - timedelta(days=days - 1)
+    since = clock.today() - timedelta(days=days - 1)
     rows = db.execute(select(Society.id, Society.name, Society.households, func.coalesce(func.sum(SavingLog.litres), 0))
                       .join(SavingLog, SavingLog.society_id == Society.id, isouter=True)
                       .where(Society.ward_id == user.ward_id)

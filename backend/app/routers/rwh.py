@@ -1,11 +1,12 @@
 """Rainwater harvesting: maintenance checklist per unit + the yearly harvest calculator."""
-from datetime import date, timedelta
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import clock
 from ..auth import can_see_society, current_user, require
 from ..db import get_db
 from ..models import RwhCheck, RwhUnit, User, now
@@ -32,7 +33,7 @@ def unit_out(u: RwhUnit, rain_mm: float):
 @router.get("/societies/{society_id}/rwh")
 def rwh(society_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
     soc = can_see_society(user, society_id, db)
-    rain = yearly_rain(soc.lat, soc.lon, date.today())
+    rain = yearly_rain(soc.lat, soc.lon, clock.today())
     units = db.scalars(select(RwhUnit).where(RwhUnit.society_id == society_id).order_by(RwhUnit.id)).all()
     return {"rain": rain, "runoff_factors": RUNOFF, "checklist": CHECKLIST, "units": [unit_out(u, rain["rain_mm"]) for u in units],
             "society_roof_m2": soc.roof_area_m2,

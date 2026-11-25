@@ -57,6 +57,14 @@ def test_scene5_leak_lifecycle(client, tokens):
     t = client.post("/api/leaks", data={"category": "pipe_burst", "lat": "21.2712", "lon": "78.5875", "note": "burst"},
                     files={"photo": photo}, headers=r).json()
     assert t["ward_id"] and t["photo"].startswith("/uploads/") and t["status"] == "open"
+    img = client.get(t["photo"])
+    assert img.status_code == 200 and img.headers["content-type"] == "image/png" and img.content.startswith(b"\x89PNG")
+    fake = ("leak.png", io.BytesIO(b"<svg onload=alert(1)>"), "image/png")
+    bad = {"category": "pipe_burst", "lat": "21.2712", "lon": "78.5875"}
+    assert client.post("/api/leaks", data=bad, files={"photo": fake}, headers=r).status_code == 422
+    big = ("leak.jpg", io.BytesIO(b"\xff\xd8\xff" + b"0" * (4 * 1024 * 1024)), "image/jpeg")
+    assert client.post("/api/leaks", data=bad, files={"photo": big}, headers=r).status_code == 413
+    assert client.get("/uploads/../app/main.py").status_code == 404 and client.get("/uploads/nope.jpg").status_code == 404
     assert client.patch(f"/api/leaks/{t['id']}", json={"status": "assigned"}, headers=r).status_code == 403
     assert client.patch(f"/api/leaks/{t['id']}", json={"status": "resolved"}, headers=w).status_code == 422
     for st in ("assigned", "in_progress", "resolved"):
@@ -87,7 +95,12 @@ def test_community(client, tokens):
     assert len(client.get("/api/tips").json()["tips"]) >= 8
 
 
-def test_chat_offline_guide_and_tts_off(client):
-    out = client.post("/api/chat", json={"message": "टँकर कधी येणार", "lang": "mr"}).json()
+def test_chat_offline_guide_and_tts_off(client, tokens):
+    r = tokens["resident"]
+    assert client.post("/api/chat", json={"message": "hi"}).status_code == 401          # paid services: signed-in users only
+    assert client.post("/api/speech/tts", json={"text": "hi"}).status_code == 401
+    res = client.post("/api/chat", json={"message": "टँकर कधी येणार", "lang": "mr"}, headers=r)
+    assert res.headers["cache-control"] == "private, no-store"
+    out = res.json()
     assert out["mode"] == "guide" and out["intent"] == "tanker" and "टँकर" in out["reply"]
-    assert client.post("/api/speech/tts", json={"text": "नमस्कार", "lang": "mr"}).status_code == 501
+    assert client.post("/api/speech/tts", json={"text": "नमस्कार", "lang": "mr"}, headers=r).status_code == 501

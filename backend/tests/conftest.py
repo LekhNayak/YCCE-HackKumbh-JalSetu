@@ -6,7 +6,8 @@ from dataclasses import replace
 import pytest
 
 _tmp = tempfile.mkdtemp(prefix="jalsetu-test-")
-os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/test.db"
+# TEST_DATABASE_URL=postgresql://... runs the same tests on Postgres. They DROP every table there: use a throwaway database.
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_tmp}/test.db"
 os.environ["JALSETU_OFFLINE"] = "1"
 os.environ["UPLOADS_DIR"] = os.path.join(_tmp, "uploads")
 os.environ["TTS_CACHE_DIR"] = os.path.join(_tmp, "tts")

@@ -7,6 +7,7 @@ import { useApp } from "../context";
 import { api, useApi } from "../lib/api";
 import type { Ticket } from "../lib/types";
 import { ago, fmtDate, fmtTime } from "../lib/format";
+import { shrinkPhoto } from "../lib/photo";
 import { DemoBadge, Loading, StatusChip, Tile } from "../components/Bits";
 import MapView, { homePin } from "../components/MapView";
 
@@ -58,7 +59,11 @@ export function LeakNew() {
     setBusy(true); setErr(null);
     const fd = new FormData();
     fd.append("category", cat); fd.append("lat", String(pos[0])); fd.append("lon", String(pos[1])); fd.append("note", note);
-    if (photo) fd.append("photo", photo);
+    if (photo) {
+      const small = await shrinkPhoto(photo);
+      if (!small) { setErr(t("leaks.photo_bad")); setBusy(false); return; }
+      fd.append("photo", small, "leak.jpg");
+    }
     try { setDone(await api<Ticket>("/api/leaks", { method: "POST", body: fd })); }
     catch (x) { setErr((x as Error).message); }
     finally { setBusy(false); }
