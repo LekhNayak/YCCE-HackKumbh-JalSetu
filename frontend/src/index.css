@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #0039d3;
+  --navy: #0a1f66;
+  --accent: #fa5e00;
+  --ink: #0e1a3f;
+  --muted: #56617f;
+  --line: #dde5f4;
+  --sky: #eef3ff;
+  /* The skill's two curves: one for travel, one for arriving from nowhere */
+  --ease-travel: cubic-bezier(0.45, 0, 0.1, 1);
+  --ease-arrive: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+html, body, #root { height: 100%; }
+body {
+  @apply bg-plane text-ink font-sans antialiased;
+  font-feature-settings: "tnum" 0;
+}
+/* Not inside a Stageshow stage: each scene sets its own line heights */
+:lang(mr):not(:where(.ss-stage *)), :lang(hi):not(:where(.ss-stage *)) { line-height: 1.6; }
+
+@layer components {
+  .card { @apply bg-white rounded-card shadow-card border border-line/70 p-5; }
+  .card-navy { @apply rounded-card p-5 text-white shadow-card; background: #0a1f66; }
+  .card-sky { @apply rounded-card p-5 border border-brand-line; background: #eef3ff; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+         focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn:active:not(:disabled) { transform: scale(0.985); }
+  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
+  .btn-accent { @apply btn bg-accent text-white hover:brightness-95; }
+  .btn-ghost { @apply btn bg-white text-ink border border-line hover:bg-brand-sky; }
+  .btn-soft { @apply btn bg-brand-sky text-brand hover:bg-brand-line/60; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .chip svg { @apply shrink-0; stroke-width: 2.4; }                /* thin outlines go wiry this small */
+  .seg-thumb { transition: transform 260ms var(--ease-travel); }
+  /* A scrolling list fades at its foot instead of slicing a row */
+  .scroll-fade { padding-bottom: 28px; mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+  .input { min-height: 44px; @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-4 focus:ring-brand/15; }
+  .tabnum { font-variant-numeric: tabular-nums; }
+  .kpi-value { @apply text-3xl font-bold tabnum leading-tight; }
+}
+
+/* Start page: copy, sign-in and the product demo */
+.start-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "signin" "demo"; }
+.start-copy { grid-area: copy; }
+.start-signin { grid-area: signin; }
+.start-demo { grid-area: demo; min-width: 0; width: 100%; max-width: 440px; margin-inline: auto; }
+@media (min-width: 770px) { .start-demo { max-width: 784px; } }
+@media (min-width: 1024px) {
+  .start-grid { column-gap: 2.5rem; grid-template-columns: minmax(0, 1fr) 26rem; grid-template-areas: "copy signin" "demo demo"; }
+}
+@media (min-width: 1280px) {
+  .start-grid { grid-template-rows: auto 1fr; grid-template-areas: "copy signin" "demo signin"; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eef2fb 0%, #f7f9fe 50%, #eef2fb 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s infinite;
+  border-radius: 12px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.guide-highlight {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 4px;
+  border-radius: 18px;
+  animation: pulse-ring 1.2s ease-in-out 3;
+}
+@keyframes pulse-ring { 0%, 100% { outline-color: rgba(250, 94, 0, 0.95); } 50% { outline-color: rgba(250, 94, 0, 0.25); } }
+
+.fade-in { animation: fade-in 0.4s var(--ease-arrive); }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.leaflet-container { font-family: inherit; border-radius: 14px; background: #eef3ff; }
+.recharts-default-tooltip { padding: 8px 12px !important; border: 1px solid var(--line) !important; border-radius: 12px; box-shadow: 0 10px 30px rgba(10, 31, 102, 0.14); font-size: 12px; line-height: 1.5; }
+.leaflet-tooltip { font-family: inherit; font-size: 12px; border-radius: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

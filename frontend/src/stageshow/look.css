@@ -1,0 +1,42 @@
+/* JalSetu's look for every Stageshow stage: the Tailwind theme mapped to the
+   kit's tokens (tailwind.config.js is the source). Unlayered, so it beats the
+   kit's own defaults. */
+.js-look .ss-stage {
+  --ss-font: "Poppins", system-ui, sans-serif;
+
+  --ss-canvas: #f6f8fe;
+  --ss-surface: #fff;
+  --ss-raised: #fff;
+  --ss-well: #e3ebff;
+
+  --ss-line: #dde5f4;
+  --ss-line-faint: #e9eef9;
+
+  --ss-text-strong: #0e1a3f;
+  --ss-text: #56617f;
+  --ss-text-faint: #76809c;
+  --ss-icon: #56617f;
+  --ss-icon-faint: #b4bcd2;
+
+  --ss-accent: #0039d3;
+  --ss-accent-2: #0039d3;
+  --ss-accent-soft: #eef3ff;
+  --ss-accent-text: #0039d3;
+  --ss-success: #0e8a5f;
+  --ss-success-soft: #ecfdf5;
+  --ss-success-text: #0e8a5f;
+  --ss-danger: #c62f2f;
+  --ss-warning: #fa5e00;
+
+  /* Placeholder ink in the product's navy, not neutral black */
+  --ss-ink-1: rgba(10, 31, 102, 0.04);
+  --ss-ink-2: rgba(10, 31, 102, 0.07);
+  --ss-ink-3: rgba(10, 31, 102, 0.1);
+  --ss-ink-4: rgba(10, 31, 102, 0.13);
+  --ss-ink-5: rgba(10, 31, 102, 0.18);
+  --ss-fill: #e7ebf5;
+
+  --ss-radius-sm: 8px;
+  --ss-radius-md: 12px;
+  --ss-radius-lg: 14px;
+}

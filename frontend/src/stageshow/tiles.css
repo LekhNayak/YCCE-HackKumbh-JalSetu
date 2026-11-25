@@ -1,0 +1,264 @@
+/* The feature tiles under the hero. The tile and its copy are page elements;
+   each picture is a Stage that meets the tile's own edge. */
+.ft-grid {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.ft-tile {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e3e9f6;
+}
+
+.ft-tile[data-tone="navy"] {
+  color: #fff;
+  background: #0a1f66;
+  box-shadow: none;
+}
+
+.ft-tile[data-tone="sky"] {
+  background: #e3ebff;
+  box-shadow: none;
+}
+
+.ft-copy {
+  flex: 1;
+  padding: 24px 24px 0;
+}
+
+.ft-title {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.ft-body {
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #56617f;
+}
+
+.ft-tile[data-tone="navy"] .ft-body {
+  color: #c9d5f7;
+}
+
+.ft-pic {
+  flex: none;
+  width: 100%;
+}
+
+/* Between a phone and three columns: copy beside its picture */
+@media (min-width: 640px) and (max-width: 1151px) {
+  .ft-tile {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .ft-copy {
+    padding: 28px 12px 28px 28px;
+  }
+
+  .ft-pic {
+    width: 400px;
+    align-self: flex-end;
+  }
+}
+
+@media (min-width: 1152px) {
+  .ft-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ft .ss-stage {
+  overflow: hidden;
+  line-height: 1.35;
+}
+
+/* Groundwater */
+.ft-gw .ft-gw__plot {
+  position: absolute;
+  inset: 0;
+}
+
+.ft-gw .ft-gw__now,
+.ft-gw .ft-gw__then {
+  position: absolute;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: #fff;
+}
+
+.ft-gw .ft-gw__now {
+  transform: translateX(-100%);
+}
+
+.ft-gw .ft-gw__then {
+  color: #ffb78a;
+  transform: translateY(-10px);
+}
+
+.ft-gw .ft-gw__then span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #c9d5f7;
+}
+
+.ft-gw .ft-gw__foot {
+  position: absolute;
+  bottom: 20px;
+  left: 24px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #aebde9;
+}
+
+/* Leak ticket: pinned to the copy's gutter, off the bottom */
+.ft-leak .ft-ticket {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  left: 24px;
+  height: 260px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--ss-surface);
+  box-shadow: var(--ss-shadow-ground), 0 2px 14px rgba(10, 31, 102, 0.07);
+}
+
+.ft-leak .ft-ticket__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ft-leak .ft-ticket__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: #c44a00;
+  background: #fff1e7;
+}
+
+.ft-leak .ft-ticket__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ss-text-strong);
+}
+
+.ft-leak .ft-ticket__id {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ss-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.ft-leak .ft-steps {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-left: 8px;
+}
+
+.ft-leak .ft-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 22px;
+  font-size: 14px;
+  color: var(--ss-text);
+}
+
+.ft-leak .ft-step i {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--ss-accent);
+}
+
+/* One rail from mark to mark, under the discs */
+.ft-leak .ft-step + .ft-step::before {
+  position: absolute;
+  bottom: 20px;
+  left: 9px;
+  width: 2px;
+  height: 12px;
+  content: "";
+  background: var(--ss-accent);
+}
+
+.ft-leak .ft-step[data-state="now"] {
+  font-weight: 600;
+  color: var(--ss-text-strong);
+}
+
+.ft-leak .ft-step[data-state="now"] i {
+  background: #fff;
+  box-shadow: inset 0 0 0 6px var(--ss-accent);
+}
+
+.ft-leak .ft-step[data-state="next"] i {
+  background: #e2e8f4;
+}
+
+.ft-leak .ft-step[data-state="next"]::before {
+  background: #e2e8f4;
+}
+
+/* Rainwater: one number, then the loads it stands for */
+.ft-rain .ft-rain__big {
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: var(--ss-accent);
+}
+
+.ft-rain .ft-rain__sum {
+  position: absolute;
+  top: 71px;
+  left: 24px;
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--ss-text);
+}
+
+.ft-rain .ft-rain__loads {
+  position: absolute;
+  top: 108px;
+  right: 24px;
+  left: 24px;
+  display: grid;
+  grid-template-columns: repeat(9, 24px);
+  justify-content: space-between;
+  row-gap: 8px;
+  color: #0a1f66;
+}

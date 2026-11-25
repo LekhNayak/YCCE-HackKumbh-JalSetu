@@ -1,0 +1,27 @@
+# Pull the newest CGWB + GSDA groundwater telemetry for the demo district every 6 hours and commit the updated
+# real-data file. Enable it in the repo's Actions tab; it needs "Read and write permissions" for GITHUB_TOKEN.
+name: ingest-nwdp
+on:
+  schedule:
+    - cron: "15 */6 * * *"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pandas httpx
+      - name: Download and append new readings
+        # --insecure only because some runners lack the portal's intermediate CA; drop it if verification passes.
+        run: python scripts/ingest_nwdp.py --agency cgwb gsda --insecure
+      - name: Commit if anything changed
+        run: |
+          git config user.name "jalsetu-bot"
+          git config user.email "jalsetu-bot@users.noreply.github.com"
+          git add backend/data/wells_nagpur.json backend/data/manifest.json
+          git diff --cached --quiet || git commit -m "data: NWDP groundwater telemetry update"
+          git push

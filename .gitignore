@@ -1,0 +1,15 @@
+# secrets and local state
+backend/.env
+backend/jalsetu.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/.cache/
+**/__pycache__/
+.pytest_cache/
+.venv/
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dev-dist/
+# Office lock files
+~$*

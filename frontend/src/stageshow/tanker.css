@@ -1,0 +1,377 @@
+/* The start page's hero. Every rule belongs to this scene (.tk). */
+/* A pale brand ground: one gutter for the window's top and left and the
+   phone's right; the window and phone run off the bottom */
+.tk .ss-stage {
+  --gutter: 36px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--ss-well);
+  line-height: 1.35;
+}
+
+.tk .tk-window {
+  position: absolute;
+  top: var(--gutter);
+  left: var(--gutter);
+  width: 616px;
+  height: 540px;
+  box-shadow: var(--ss-shadow-hero);
+}
+
+/* The app's own header */
+.tk .tk-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  padding: 0 18px;
+  background: var(--ss-surface);
+  border-bottom: 1px solid var(--ss-line);
+}
+
+.tk .tk-brand {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: #0a1f66;
+}
+
+.tk .tk-brand__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--ss-accent);
+}
+
+.tk .tk-brand__word {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tk .tk-brand__word b {
+  font-weight: 700;
+  color: var(--ss-accent);
+}
+
+.tk .tk-nav {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 28px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ss-text);
+}
+
+.tk .tk-nav[data-on] {
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--ss-accent);
+  background: var(--ss-accent-soft);
+}
+
+/* The left column: the phone stands over the rest of the page */
+.tk .tk-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 424px;
+  padding: 16px 20px 0 18px;
+}
+
+.tk .tk-card {
+  flex: none;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--ss-surface);
+  box-shadow: 0 0 0 1px var(--ss-line-faint), 0 2px 10px rgba(10, 31, 102, 0.05);
+}
+
+.tk .tk-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+}
+
+.tk .tk-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--ss-accent);
+  background: var(--ss-accent-soft);
+}
+
+.tk .tk-chip[data-tone="accent"] {
+  color: #c44a00;
+  background: #fff1e7;
+}
+
+.tk .tk-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ss-text-strong);
+}
+
+.tk .tk-time {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ss-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The question, the hours and the answer share one slot */
+.tk .tk-answer {
+  display: grid;
+  width: 100%;
+  height: 38px;
+  margin-top: 12px;
+}
+
+.tk .tk-answer .ss-states__item {
+  gap: 8px;
+}
+
+.tk .tk-btn {
+  --ss-button-height: 38px;
+  --ss-button-pad: 16px;
+  --ss-button-pad-icon: 13px;
+  --ss-button-icon: 15px;
+  --ss-button-gap: 7px;
+  border-radius: 11px;
+  font-weight: 600;
+}
+
+.tk .tk-btn--hour {
+  min-width: 72px;
+  color: var(--ss-accent);
+  background: var(--ss-accent-soft);
+}
+
+.tk .tk-btn--hour[data-hover] {
+  background: #dde7ff;
+}
+
+.tk .tk-logged {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 16px 0 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--ss-accent);
+  background: var(--ss-accent-soft);
+}
+
+.tk .tk-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.tk .tk-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--ss-text);
+}
+
+.tk .tk-day i {
+  width: 100%;
+  height: 20px;
+  border-radius: 7px;
+  background: #e2e8f0;
+  transition: background-color 0.3s ease;
+}
+
+.tk .tk-day i[data-state="came"] {
+  background: var(--ss-accent);
+}
+
+.tk .tk-day i[data-state="none"] {
+  background: #ffb27f;
+}
+
+.tk .tk-btn--tanker {
+  width: 100%;
+  --ss-button-height: 42px;
+  margin-top: 12px;
+  background: #fa5e00;
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 220ms ease;
+}
+
+.tk .tk-btn--tanker[data-hover] {
+  background: #ee5900;
+}
+
+.tk .tk-btn--tanker[data-done] {
+  background: var(--ss-success);
+}
+
+/* Two whole lines crossfade in here, so the label keeps its line box */
+.tk .tk-btn--tanker .ss-button__label {
+  display: grid;
+  text-box: normal;
+}
+
+.tk .tk-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+/* The neighbour's phone: straddles the window's right edge over empty page */
+.tk .tk-phone {
+  position: absolute;
+  top: 138px;
+  right: var(--gutter);
+  box-shadow: var(--ss-shadow-satellite), 0 30px 50px -20px rgba(10, 31, 102, 0.35);
+}
+
+/* True points from here (393 wide). The status bar keeps the system font */
+.tk .tk-app {
+  font-family: var(--ss-font);
+}
+
+.tk .tk-app__bar {
+  display: flex;
+  align-items: center;
+  height: 54px;
+  padding: 0 20px;
+}
+
+.tk .tk-app .tk-brand {
+  gap: 10px;
+}
+
+.tk .tk-app .tk-brand__word {
+  font-size: 21px;
+}
+
+.tk .tk-app__card {
+  margin: 8px 14px 0;
+  padding: 16px 14px;
+  border-radius: 22px;
+  background: var(--ss-surface);
+  box-shadow: 0 0 0 1px var(--ss-line-faint), 0 2px 14px rgba(10, 31, 102, 0.07);
+}
+
+.tk .tk-app__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ss-text-strong);
+}
+
+.tk .tk-app__chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: var(--ss-accent);
+  background: var(--ss-accent-soft);
+}
+
+.tk .tk-alert {
+  margin-bottom: 12px;
+  padding: 13px;
+  border-radius: 15px;
+  background: #f6f8fe;
+}
+
+.tk .tk-alert[data-new] {
+  background: #f1fbf3;
+  box-shadow: inset 0 0 0 1px #cfe9d6;
+}
+
+.tk .tk-alert__kind {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 17px;
+  font-size: 17.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ss-text-strong);
+  background: #fff;
+}
+
+.tk .tk-alert__kind i {
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--ss-success);
+}
+
+.tk .tk-alert__text {
+  margin: 10px 0 0;
+  font-size: 18.5px;
+  line-height: 1.45;
+  color: var(--ss-text-strong);
+}
+
+.tk .tk-alert__time {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 17.5px;
+  line-height: 1.3;
+  color: var(--ss-text);
+}
+
+.tk .tk-alert__time svg {
+  color: #0284c7;
+}
+
+/* Narrow: the tanker card and the phone, both at a readable size. The window
+   runs off the right, the phone off the bottom. */
+.tk .ss-stage[data-layout="compact"] {
+  --gutter: 16px;
+  border-radius: 20px;
+}
+
+.tk .ss-stage[data-layout="compact"] .tk-window {
+  width: 420px;
+}
+
+.tk .ss-stage[data-layout="compact"] .tk-page {
+  width: 334px;
+  padding: 14px 16px 0 14px;
+}
+
+.tk .ss-stage[data-layout="compact"] .tk-btn--tanker {
+  --ss-button-pad: 12px;
+  font-size: 12.6px;
+}
+
+.tk .ss-stage[data-layout="compact"] .tk-phone {
+  top: 232px;
+}
