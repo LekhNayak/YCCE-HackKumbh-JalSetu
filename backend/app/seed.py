@@ -4,15 +4,19 @@ Everything here is marked is_demo=True and labelled "Demo data" in the app. The 
 forecast are NOT seeded: they are real (backend/data). Borewell readings are generated from the real nearby wells'
 movement plus small noise, then pass through the same trust check as a real reading.
 
-Run:  python -m app.seed --reset      (from backend/; wipes and reloads the demo data)
+Run from backend/:
+  python -m app.seed --refresh    renews the demo entries with today's dates; registered accounts and what they entered stay
+  python -m app.seed --reset      wipes the whole database, accounts included, and loads the demo data
 """
 import argparse
 import random
 from datetime import date, datetime, time, timedelta
 
+from sqlalchemy import delete, or_, select
+
 from . import clock
 from .db import Base, SessionLocal, engine
-from .models import (Alert, BorewellReading, ForumReply, ForumThread, LeakTicket, RwhCheck, RwhUnit, SavingLog,
+from .models import (Alert, BorewellReading, ForumReply, ForumThread, LeakTicket, Photo, RwhCheck, RwhUnit, SavingLog,
                      Society, SupplyLog, TankerTrip, User, Vote, Ward)
 from .routers.rwh import CHECKLIST
 from .services import alerts, forecast, realdata, trust
@@ -38,15 +42,56 @@ def at(d: date, hh: int, mm: int = 0) -> datetime:
     return datetime.combine(d, time(hh, mm))
 
 
-def seed(reset: bool = False, rnd_seed: int = 7):
+def seeded(db) -> bool:
+    return db.scalar(select(Ward.id).limit(1)) is not None
+
+
+def existing_people(db):
+    ward = db.scalars(select(Ward).where(Ward.is_demo).order_by(Ward.id)).first()
+    socs = db.scalars(select(Society).where(Society.ward_id == ward.id, Society.is_demo).order_by(Society.id)).all()
+    users = db.scalars(select(User).where(User.is_demo, User.ward_id == ward.id).order_by(User.id)).all()
+    rajesh = next(u for u in users if u.persona and u.role == "society_admin")
+    priya = next(u for u in users if u.persona and u.role == "ward_officer")
+    return ward, socs, {s.id: [u for u in users if u.society_id == s.id] for s in socs}, rajesh, priya
+
+
+def clear_demo_entries(db):
+    """Remove the demo ward's entries, and whatever people tried out with the demo accounts."""
+    demo = select(User.id).where(User.is_demo)
+    for m, by in ((SupplyLog, SupplyLog.user_id), (BorewellReading, BorewellReading.user_id), (SavingLog, SavingLog.user_id),
+                  (LeakTicket, LeakTicket.reporter_id)):
+        db.execute(delete(m).where(or_(m.is_demo, by.in_(demo))))
+    db.execute(delete(TankerTrip).where(or_(TankerTrip.checked_in_by.is_(None), TankerTrip.checked_in_by.in_(demo))))
+    db.execute(delete(RwhCheck))
+    db.execute(delete(RwhUnit))
+    db.execute(delete(Photo).where(Photo.name.not_in(select(LeakTicket.photo).where(LeakTicket.photo.is_not(None)))))
+    tickets = {str(i) for i in db.scalars(select(LeakTicket.id))}
+    for a in db.scalars(select(Alert)).all():
+        kind, _, rest = (a.dedupe_key or "").partition(":")
+        if not (kind.startswith("leak_") and rest.split(":")[0] in tickets):
+            db.delete(a)
+    # forum: the seeded threads stay; test posts made with a demo account go, unless a registered person replied
+    db.execute(delete(ForumReply).where(ForumReply.is_demo.is_(False), ForumReply.author_id.in_(demo)))
+    db.flush()
+    old = list(db.scalars(select(ForumThread.id).where(ForumThread.is_demo.is_(False), ForumThread.author_id.in_(demo),
+                                                       ForumThread.id.not_in(select(ForumReply.thread_id)))))
+    db.execute(delete(Vote).where(Vote.thread_id.in_(old)))
+    db.execute(delete(ForumThread).where(ForumThread.id.in_(old)))
+    db.flush()
+
+
+def seed(reset: bool = False, refresh: bool = False, rnd_seed: int = 7):
     if reset:
         Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    rnd = random.Random(rnd_seed)
-    today = clock.today()
-    nowt = clock.now().replace(second=0)
     db = SessionLocal()
+    try:
+        return _seed(db, refresh and seeded(db), rnd_seed)
+    finally:
+        db.close()
 
+
+def new_people(db, rnd):
     ward = Ward(name={"en": "Katol Ward 3 (demo)", "mr": "काटोल प्रभाग 3 (डेमो)", "hi": "काटोल वार्ड 3 (डेमो)"},
                 town="Katol, Nagpur district", polygon=WARD_RING,
                 utility={"en": "Municipal water supply office (demo routing)",
@@ -82,6 +127,19 @@ def seed(reset: bool = False, rnd_seed: int = 7):
         db.add(u)
         residents[s.id].append(u)
     db.flush()
+    return ward, socs, residents, rajesh, priya
+
+
+def _seed(db, again: bool, rnd_seed: int):
+    rnd = random.Random(rnd_seed)
+    today = clock.today()
+    nowt = clock.now().replace(second=0)
+    if again:
+        ward, socs, residents, rajesh, priya = existing_people(db)
+        clear_demo_entries(db)
+    else:
+        ward, socs, residents, rajesh, priya = new_people(db, rnd)
+    read_on = {(s, d) for s, d in db.execute(select(BorewellReading.society_id, BorewellReading.day))}
 
     # --- supply logs: alternate-day supply, some days it does not come; 1-3 people log per day; today left empty ---
     for s, (*_, p_supply, _tank, _bw) in zip(socs, SOCIETIES):
@@ -137,6 +195,9 @@ def seed(reset: bool = False, rnd_seed: int = 7):
             value = depth
             if s.id == socs[1].id and i == 8:          # a typo-like jump the trust check should catch
                 value = round(depth + 4.2, 2)
+            if (s.id, d) in read_on:                   # a registered person already entered this borewell that day
+                prev = (d, value)
+                continue
             verdict = trust.check(value, d, prev, s.lat, s.lon, outlook)
             r = BorewellReading(society_id=s.id, user_id=residents[s.id][-1].id, day=d, depth_m=value, is_demo=True, **verdict)
             db.add(r)
@@ -190,8 +251,8 @@ def seed(reset: bool = False, rnd_seed: int = 7):
                         society_id=reporter.society_id, ward_id=ward.id, dedupe_key=f"leak_update:{t.id}:resolved",
                         is_demo=True, created_at=tstamp, send=False)
 
-    # --- forum ---
-    threads = [
+    # --- forum (kept on a refresh: people may have replied) ---
+    threads = [] if again else [
         (rajesh, "How often should we desilt the recharge pit?", "We cleaned ours in May and the water still soaked in slowly by August. Do others desilt twice a year?", "rwh", "en",
          [(residents[socs[2].id][0], "We do it in May and again after Diwali. The top sand layer clogs fastest; replace just that."),
           (residents[socs[3].id][0], "Also fit a first-flush pipe. Since we added one, much less silt reaches the pit.")]),
@@ -223,11 +284,19 @@ def seed(reset: bool = False, rnd_seed: int = 7):
                              action=action, litres=SAVING_ACTIONS[action] * rnd.choice([1, 1, 2, 3]), is_demo=True))
 
     db.commit()
-    db.close()
-    return {"ward": ward.id, "societies": len(socs)}
+    return {"ward": ward.id, "societies": len(socs), "mode": "refreshed" if again else "loaded"}
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--reset", action="store_true", help="drop all tables and reload the demo data")
-    print(seed(reset=ap.parse_args().reset))
+    ap.add_argument("--refresh", action="store_true", help="renew the demo entries; keep registered accounts and their entries")
+    ap.add_argument("--reset", action="store_true", help="drop all tables, accounts included, and load the demo data")
+    ap.add_argument("--erase-hosted", action="store_true", help="needed with --reset when the database is not the local SQLite file")
+    a = ap.parse_args()
+    if a.reset and engine.dialect.name != "sqlite" and not a.erase_hosted:
+        ap.error("DATABASE_URL is a hosted database, and --reset would erase the registered accounts in it. Use --refresh.")
+    Base.metadata.create_all(engine)
+    with SessionLocal() as check:
+        if not (a.reset or a.refresh) and seeded(check):
+            ap.error("the demo data is already there. Use --refresh to renew it.")
+    print(seed(reset=a.reset, refresh=a.refresh))

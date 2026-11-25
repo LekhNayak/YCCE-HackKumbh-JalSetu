@@ -4,8 +4,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://jalsetu-boomers-api.vercel.app/api/:path*" },
-    { "source": "/uploads/:path*", "destination": "https://jalsetu-boomers-api.vercel.app/uploads/:path*" },
+    { "source": "/api/:path*", "destination": "https://jalsetubackend.lekh.online/api/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://jalsetubackend.lekh.online/uploads/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -62,22 +62,24 @@ export function WellsChart({ wells, readings = [], months = 12 }: { wells: WellL
   const ok = readings.filter((r) => r.status !== "flagged").map((r) => ({ x: ts(r.day), y: r.depth_m }));
   const bad = readings.filter((r) => r.status === "flagged").map((r) => ({ x: ts(r.day), y: r.depth_m }));
   return (
-    <div className="h-72 w-full">
-      <ResponsiveContainer>
-        <ComposedChart margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="#E7ECF7" vertical={false} />
-          <XAxis dataKey="x" type="number" scale="time" domain={[since, end]} allowDuplicatedCategory={false} tick={axisStyle} tickFormatter={DateTick({ lang })} />
-          <YAxis dataKey="y" reversed tick={axisStyle} width={44} domain={["auto", "auto"]} unit=" m" tickFormatter={(v) => fmtNum(v, lang)} />
-          <Tooltip labelFormatter={(v) => fmtDate(new Date(v as number).toISOString().slice(0, 10), lang)} formatter={(v: number, n) => [`${fmtNum(v, lang)} m`, n]} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
-          {series.map(({ w, data }, i) => (
-            <Line key={w.code} data={data} dataKey="y" name={`${w.name} (${w.agency}, ${fmtNum(w.km, lang)} km)`} stroke={WELL_COLORS[i]}
-                  strokeWidth={1.6} dot={false} isAnimationActive={false} />
-          ))}
-          {ok.length > 0 && <Scatter data={ok} dataKey="y" name={t("gw.our_borewell")} fill="#FA5E00" isAnimationActive={false} />}
-          {bad.length > 0 && <Scatter data={bad} dataKey="y" name={t("gw.flagged")} fill="#C62F2F" shape="diamond" isAnimationActive={false} />}
-        </ComposedChart>
-      </ResponsiveContainer>
+    <div className="h-72 w-full" role="img" aria-label={`${t("gw.our_borewell")}, ${wells.map((w) => w.name).join(", ")}`}>
+      <div className="h-full w-full" aria-hidden>
+        <ResponsiveContainer>
+          <ComposedChart margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke="#E7ECF7" vertical={false} />
+            <XAxis dataKey="x" type="number" scale="time" domain={[since, end]} allowDuplicatedCategory={false} tick={axisStyle} tickFormatter={DateTick({ lang })} />
+            <YAxis dataKey="y" reversed tick={axisStyle} width={44} domain={["auto", "auto"]} unit=" m" tickFormatter={(v) => fmtNum(v, lang)} />
+            <Tooltip labelFormatter={(v) => fmtDate(new Date(v as number).toISOString().slice(0, 10), lang)} formatter={(v: number, n) => [`${fmtNum(v, lang)} m`, n]} />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            {series.map(({ w, data }, i) => (
+              <Line key={w.code} data={data} dataKey="y" name={`${w.name} (${w.agency}, ${fmtNum(w.km, lang)} km)`} stroke={WELL_COLORS[i]}
+                    strokeWidth={1.6} dot={false} isAnimationActive={false} />
+            ))}
+            {ok.length > 0 && <Scatter data={ok} dataKey="y" name={t("gw.our_borewell")} fill="#FA5E00" isAnimationActive={false} />}
+            {bad.length > 0 && <Scatter data={bad} dataKey="y" name={t("gw.flagged")} fill="#C62F2F" shape="diamond" isAnimationActive={false} />}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

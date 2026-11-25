@@ -40,6 +40,7 @@ class Settings:
     uploads_dir: Path = Path(env("UPLOADS_DIR", BACKEND / "uploads"))
     frontend_dist: Path = BACKEND.parent / "frontend" / "dist"
     serve_frontend: bool = env("SERVE_FRONTEND", "0") == "1"
+    demo_login: bool = env("JALSETU_DEMO_LOGIN", "1") == "1"      # the three demo accounts on the sign-in page
     cors_origins: tuple = ("http://localhost:5180", "http://127.0.0.1:5180")
     languages: tuple = ("en", "mr", "hi")
 

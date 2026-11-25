@@ -2,10 +2,10 @@
 import io
 
 
-def test_meta_and_personas(client):
+def test_meta_and_demo_accounts(client):
     m = client.get("/api/meta").json()
     assert m["features"]["chat"] == "guide" and m["features"]["speech"] is False
-    roles = [p["role"] for p in client.get("/api/personas").json()]
+    roles = [p["role"] for p in client.get("/api/auth/options").json()["demo"]]
     assert roles == ["resident", "society_admin", "ward_officer"]
     assert client.get("/api/me").status_code == 401
 

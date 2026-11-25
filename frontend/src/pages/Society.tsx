@@ -112,7 +112,7 @@ export default function Society() {
                 {(["on_time", "late", "missed"] as const).map((k) => <StatusChip key={k} status={k} label={`${t(`society.trip.${k}`)} · ${tk.data!.counts[k] ?? 0}`} />)}
               </div>
               <div className="eyebrow mb-1">{t("society.recent_trips")}</div>
-              <ul className="scroll-fade max-h-44 divide-y divide-line overflow-y-auto text-sm">
+              <ul className="scroll-fade max-h-44 divide-y divide-line overflow-y-auto rounded-lg text-sm focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/30" tabIndex={0} aria-label={t("society.recent_trips")}>
                 {tk.data.trips.slice(0, 10).map((tr) => (
                   <li key={tr.id} className="grid grid-cols-[1fr_5rem_6.5rem] items-center gap-2 py-1.5">
                     <span>{fmtDate(tr.scheduled_at, lang, { day: "numeric", month: "short" })} · {fmtTime(tr.scheduled_at, lang)}</span>

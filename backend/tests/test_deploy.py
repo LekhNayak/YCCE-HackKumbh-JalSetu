@@ -53,3 +53,11 @@ print([c.get(p).text for p in ("/", "/ward", "/..%2f..%2fsecret.txt", "/..%5c..%
 """
     out = subprocess.run([sys.executable, "-c", code, str(site)], cwd=BACKEND, capture_output=True, text=True, env={**os.environ})
     assert out.stdout.strip() == str(["INDEX"] * 4), out.stderr[-800:]
+
+
+def test_values_the_database_cannot_hold_are_refused_not_a_crash(client, tokens):
+    r = tokens["resident"]
+    for path in ("/api/forum/threads/99999999999", "/api/societies/99999999999/dashboard", "/api/societies/99999999999999999999999/dashboard"):
+        assert client.get(path, headers=r).status_code in (403, 404, 422), path
+    res = client.post("/api/forum/threads", json={"title": "a nul \u0000 here", "body": "text", "tag": "general"}, headers=r)
+    assert res.status_code in (200, 422)

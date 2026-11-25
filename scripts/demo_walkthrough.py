@@ -96,7 +96,7 @@ with sync_playwright() as p:
     shot(page, "07_leak_sent")
 
     print("scene 6: ward officer closes the ticket; hotspot + priority map + outbox")
-    page.get_by_title("Switch user").click()
+    page.get_by_title("Sign out").click()
     page.wait_for_url(a.base + "/")
     page.get_by_role("button", name="Priya Wankhede").click()
     page.wait_for_url("**/ward")

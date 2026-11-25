@@ -35,9 +35,15 @@ export default function MapView({ center, zoom = 13, tiles = true, height = 320,
   return <div ref={ref} style={{ height }} className="w-full overflow-hidden rounded-[14px] border border-line" role="region" aria-label={label} />;
 }
 
+/** A marker with a tooltip, named for screen readers (a plain Leaflet marker is an unnamed button). */
+export function named(m: L.Marker, tip: string, name = tip) {
+  return m.bindTooltip(tip).on("add", () => m.getElement()?.setAttribute("aria-label", name));
+}
+
+/** A dot of `size` in a target of at least 24 px, so it can be tapped. */
 export const pin = (color: string, size = 14, ring = "#fff") => L.divIcon({
-  className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2],
-  html: `<span style="display:block;width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${ring};box-shadow:0 1px 4px rgba(10,31,102,.35)"></span>`,
+  className: "", iconSize: [Math.max(24, size), Math.max(24, size)], iconAnchor: [Math.max(24, size) / 2, Math.max(24, size) / 2],
+  html: `<span style="display:block;margin:${(Math.max(24, size) - size) / 2}px;width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${ring};box-shadow:0 1px 4px rgba(10,31,102,.35)"></span>`,
 });
 
 export const homePin = () => L.divIcon({

@@ -145,7 +145,7 @@ export default function Community() {
         <Tile className="lg:col-span-12" title={t("community.forum")} icon={MessagesSquare} guide="forum">
           <form onSubmit={post} className="mb-4 grid gap-2 rounded-2xl bg-plane p-3 md:grid-cols-[1fr_10rem_auto]">
             <input className="input" required minLength={3} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("community.thread_title")} />
-            <select className="input" value={tag} onChange={(e) => setTag(e.target.value)}>{TAGS.map((k) => <option key={k} value={k}>{t(`community.tag.${k}`)}</option>)}</select>
+            <select className="input" aria-label={t("community.topic")} value={tag} onChange={(e) => setTag(e.target.value)}>{TAGS.map((k) => <option key={k} value={k}>{t(`community.tag.${k}`)}</option>)}</select>
             <button className="btn-primary" disabled={title.length < 3 || body.length < 3}>{t("community.post")}</button>
             <textarea className="input md:col-span-3" required minLength={3} rows={2} value={body} onChange={(e) => setBody(e.target.value)} placeholder={t("community.thread_body")} />
           </form>

@@ -24,15 +24,17 @@ body {
 :lang(mr):not(:where(.ss-stage *)), :lang(hi):not(:where(.ss-stage *)) { line-height: 1.6; }
 
 @layer components {
+  .card, .card-navy, .card-sky { min-width: 0; }                    /* a wide table inside scrolls instead of widening the page */
   .card { @apply bg-white rounded-card shadow-card border border-line/70 p-5; }
   .card-navy { @apply rounded-card p-5 text-white shadow-card; background: #0a1f66; }
   .card-sky { @apply rounded-card p-5 border border-brand-line; background: #eef3ff; }
   .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted; }
+  :is(:lang(mr), :lang(hi)) .eyebrow { letter-spacing: 0; }          /* tracking breaks the line that joins Devanagari letters */
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
          focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 disabled:opacity-50 disabled:cursor-not-allowed; }
   .btn:active:not(:disabled) { transform: scale(0.985); }
   .btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
-  .btn-accent { @apply btn bg-accent text-white hover:brightness-95; }
+  .btn-accent { @apply btn bg-accent-strong text-white hover:brightness-95; }       /* white on the bright orange is only 3:1 */
   .btn-ghost { @apply btn bg-white text-ink border border-line hover:bg-brand-sky; }
   .btn-soft { @apply btn bg-brand-sky text-brand hover:bg-brand-line/60; }
   .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }

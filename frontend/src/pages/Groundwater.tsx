@@ -9,7 +9,7 @@ import { fmtDate, fmtNum } from "../lib/format";
 import { ErrorBox, Loading, RealBadge, Tile } from "../components/Bits";
 import { DistrictChart, ProofChart, WellsChart } from "../components/Charts";
 import OutlookCard from "../components/OutlookCard";
-import MapView, { homePin, pin } from "../components/MapView";
+import MapView, { homePin, named, pin } from "../components/MapView";
 import { liveWells } from "./Society";
 
 interface District { outlook: Outlook; observed: { weekly: [string, number][]; daily_recent: [string, number][]; last_date: string };
@@ -37,10 +37,11 @@ export default function Groundwater() {
   const draw = useCallback((map: L.Map) => {
     if (!wells.data) return;
     const s = wells.data.society;
-    const layers: L.Layer[] = [L.marker([s.lat, s.lon], { icon: homePin() }).bindTooltip(`${s.name} · ${t("gw.you")}`)];
+    const layers: L.Layer[] = [named(L.marker([s.lat, s.lon], { icon: homePin() }), `${s.name} · ${t("gw.you")}`)];
     for (const w of wells.data.wells) {
-      layers.push(L.marker([w.lat, w.lon], { icon: pin(w.agency === "CGWB" ? "#0A1F66" : "#0039D3", 14) })
-        .bindTooltip(`<b>${w.name}</b> (${w.agency}) · ${fmtNum(w.km, lang)} km<br/>${fmtNum(-w.latest_m, lang)} m · ${t("gw.well_last", { date: fmtDate(w.last, lang) })}`));
+      const facts = `(${w.agency}) · ${fmtNum(w.km, lang)} km`, last = `${fmtNum(-w.latest_m, lang)} m · ${t("gw.well_last", { date: fmtDate(w.last, lang) })}`;
+      layers.push(named(L.marker([w.lat, w.lon], { icon: pin(w.agency === "CGWB" ? "#0A1F66" : "#0039D3", 14) }),
+        `<b>${w.name}</b> ${facts}<br/>${last}`, `${w.name} ${facts}, ${last}`));
     }
     const g = L.featureGroup(layers).addTo(map);
     map.fitBounds(g.getBounds(), { padding: [24, 24] });

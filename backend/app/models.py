@@ -49,6 +49,33 @@ class User(Base):
     society: Mapped[Society | None] = relationship()
 
 
+class Account(Base):
+    """Sign-in details of a registered person. Kept apart from User, whose name other people's screens show."""
+    __tablename__ = "account"
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True, autoincrement=False)
+    username: Mapped[str] = mapped_column(String(30), unique=True)      # lower case
+    email: Mapped[str] = mapped_column(String(254), unique=True)        # lower case
+    password_hash: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now, index=True)
+
+
+class AuthSession(Base):
+    """One sign-in. Only a keyed hash of the token is kept."""
+    __tablename__ = "auth_session"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+
+
+class SignInFailure(Base):
+    """A wrong password in the last 15 minutes (the username or email is kept only as a keyed hash)."""
+    __tablename__ = "sign_in_failure"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(String(64), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=now, index=True)
+
+
 class SupplyLog(Base):
     __tablename__ = "supply_log"
     __table_args__ = (UniqueConstraint("client_id"),)

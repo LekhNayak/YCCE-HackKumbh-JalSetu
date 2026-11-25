@@ -12,6 +12,9 @@ export function savedLang(): Lang {
   return isLang(v) ? v : "en";
 }
 
+/** The reader picked a language on this device (it then wins over the one saved with an account). */
+export const hasChosenLang = () => isLang(localStorage.getItem(KEY));
+
 export function initLang() {
   const lng = savedLang();
   void i18n.use(initReactI18next).init({

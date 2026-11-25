@@ -24,7 +24,7 @@ Data:
 | id | What it shows |
 |---|---|
 | lang-switch | language menu (English, मराठी, हिंदी) |
-| persona-switch | switch demo user |
+| persona-switch | your name and "Sign out" |
 | chat-button | this guide |
 | log-supply | the "water came / no water" buttons |
 | tanker-card | next tanker and the "tanker arrived" button |

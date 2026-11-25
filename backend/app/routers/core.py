@@ -1,13 +1,9 @@
-"""Meta, demo personas, sign-in."""
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+"""Meta and the signed-in user."""
+from fastapi import APIRouter, Depends
 
 from .. import clock
-from ..auth import current_user, make_token
+from ..auth import current_user
 from ..config import settings
-from ..db import get_db
 from ..models import User
 from ..services import realdata
 from ..services.speech import gnani
@@ -36,24 +32,6 @@ def meta():
                          "speech_languages": ["en", "mr", "hi"] if gnani.enabled() else [],
                          "whatsapp": "twilio" if settings.twilio_sid and settings.alert_test_to else "simulated"},
             "data": data}
-
-
-@router.get("/personas")
-def personas(db: Session = Depends(get_db)):
-    users = db.scalars(select(User).where(User.persona.is_(True)).order_by(User.id)).all()
-    return [user_out(u) for u in users]
-
-
-class Login(BaseModel):
-    user_id: int
-
-
-@router.post("/login")
-def login(body: Login, db: Session = Depends(get_db)):
-    u = db.get(User, body.user_id)
-    if u is None or not u.persona:
-        raise HTTPException(404, "unknown persona")
-    return {"token": make_token(u.id), "user": user_out(u)}
 
 
 @router.get("/me")

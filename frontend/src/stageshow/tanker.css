@@ -212,7 +212,7 @@
   width: 100%;
   --ss-button-height: 42px;
   margin-top: 12px;
-  background: #fa5e00;
+  background: #c94b00;
   transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 220ms ease;
 }
 

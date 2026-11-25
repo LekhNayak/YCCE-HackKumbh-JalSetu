@@ -12,7 +12,7 @@ os.environ["JALSETU_OFFLINE"] = "1"
 os.environ["UPLOADS_DIR"] = os.path.join(_tmp, "uploads")
 os.environ["TTS_CACHE_DIR"] = os.path.join(_tmp, "tts")
 
-from app.routers import core  # noqa: E402
+from app.routers import accounts, core  # noqa: E402
 from app.services import alerts, chat, rain  # noqa: E402
 from app.services.speech import gnani  # noqa: E402
 
@@ -37,7 +37,7 @@ def client():
 @pytest.fixture(scope="session")
 def tokens(client):
     out = {}
-    for p in client.get("/api/personas").json():
-        tok = client.post("/api/login", json={"user_id": p["id"]}).json()["token"]
+    for p in client.get("/api/auth/options").json()["demo"]:
+        tok = client.post("/api/auth/demo", json={"user_id": p["id"]}).json()["token"]
         out[p["role"]] = {"Authorization": f"Bearer {tok}"}
     return out

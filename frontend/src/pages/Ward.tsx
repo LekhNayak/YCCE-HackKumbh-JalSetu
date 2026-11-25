@@ -7,7 +7,7 @@ import { api, useApi } from "../lib/api";
 import type { Alert, Text3, Ticket } from "../lib/types";
 import { ago, fmtNum } from "../lib/format";
 import { DemoBadge, ErrorBox, Kpi, Loading, StatusChip, Tile } from "../components/Bits";
-import MapView, { pin } from "../components/MapView";
+import MapView, { named, pin } from "../components/MapView";
 import PriorityMap from "../components/PriorityMap";
 import AlertBubble from "../components/AlertBubble";
 
@@ -56,8 +56,8 @@ export default function Ward() {
     }
     for (const s of ov.data.societies) layers.push(L.circleMarker([s.lat, s.lon], { radius: 5, color: "#0A1F66", weight: 1, fillOpacity: 0.6 }).bindTooltip(s.name));
     for (const tk of tickets.data) {
-      layers.push(L.marker([tk.lat, tk.lon], { icon: pin(STATUS_COLOR[tk.status], 15) })
-        .bindTooltip(`#${tk.id} · ${t(`leaks.cat.${tk.category}`)} · ${t(`leaks.status.${tk.status}`)}`));
+      layers.push(named(L.marker([tk.lat, tk.lon], { icon: pin(STATUS_COLOR[tk.status], 15) }),
+        `#${tk.id} · ${t(`leaks.cat.${tk.category}`)} · ${t(`leaks.status.${tk.status}`)}`));
     }
     const g = L.featureGroup(layers).addTo(map);
     map.fitBounds(g.getBounds(), { padding: [20, 20] });
@@ -150,7 +150,7 @@ export default function Ward() {
         <Tile className="lg:col-span-5" title={t("ward.outbox")} icon={BellRing} guide="outbox"
               right={<button className="btn-soft px-3 py-1.5 text-xs" onClick={() => void runChecks()}><RefreshCw size={12} />{t("ward.run_checks")}</button>}>
           {checkMsg && <p className="mb-2 rounded-lg bg-brand-sky px-3 py-2 text-xs text-brand">{checkMsg}</p>}
-          <div className="scroll-fade max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+          <div className="scroll-fade max-h-[34rem] space-y-2 overflow-y-auto rounded-lg pr-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/30" tabIndex={0} role="region" aria-label={t("ward.outbox")}>
             {(alerts.data ?? []).map((a) => <AlertBubble key={a.id} a={a} showStatus />)}
           </div>
         </Tile>

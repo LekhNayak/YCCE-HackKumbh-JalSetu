@@ -44,14 +44,14 @@ export default function ChatWidget() {
     <>
       {!open && (
         <button onClick={() => setOpen(true)} data-guide="chat-button"
-                aria-label={t("chat.open")} title={t("chat.open")} className="group fixed bottom-20 right-4 z-[1100] flex items-center rounded-full bg-brand-navy p-4 text-sm font-semibold text-white shadow-pop focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 md:bottom-6">
+                aria-label={t("chat.open")} title={t("chat.open")} className="group fixed bottom-20 right-4 z-[1100] flex items-center rounded-full bg-brand-navy p-4 text-sm font-semibold text-white shadow-pop focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 lg:bottom-6">
           <MessageCircle size={20} aria-hidden />
           {/* Closed up at rest: the open label used to cover the buttons under it */}
           <span className="max-w-0 overflow-hidden whitespace-nowrap transition-[max-width,padding] duration-300 group-hover:max-w-[14rem] group-hover:pl-2 group-focus-visible:max-w-[14rem] group-focus-visible:pl-2">{t("chat.open")}</span>
         </button>
       )}
       {open && (
-        <div className="fixed bottom-20 right-4 z-[1100] flex h-[32rem] max-h-[75vh] w-[23rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-pop md:bottom-6"
+        <div className="fixed bottom-20 right-4 z-[1100] flex h-[32rem] max-h-[75vh] w-[23rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-pop lg:bottom-6"
              role="dialog" aria-label={t("chat.title")}>
           <div className="flex items-center gap-2 bg-brand-navy px-4 py-3 text-white">
             <MessageCircle size={16} aria-hidden />

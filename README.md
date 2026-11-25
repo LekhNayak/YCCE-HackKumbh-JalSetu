@@ -79,7 +79,7 @@ An ensemble of a Temporal Fusion Transformer and LightGBM (with no-change and se
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1      # once
 powershell -ExecutionPolicy Bypass -File scripts\run_local.ps1  # API :8100, app :5180
 ```
-- Open http://localhost:5180 and pick a demo user: Asha (resident, Marathi), Rajesh (society secretary) or Priya (ward water officer).
+- Open http://localhost:5180 and create an account (username, email, password and your society), or use a demo account: Asha (resident, Marathi), Rajesh (society secretary) or Priya (ward water officer).
 - The first API start creates `backend/jalsetu.db` and loads the demo ward.
 - Every key in `backend/.env` is optional (see `.env.example`):
   - without Groq, the chat uses the offline guide;
@@ -116,17 +116,22 @@ cd frontend; npm run build           # type check + production build (PWA)
 ## Deploy
 Two Vercel projects from this repo and a Neon Postgres database:
 
-1. **Database.** Create a Neon project (Singapore) and copy its *pooled* connection string. Load the demo ward with `scripts\seed_remote.ps1`; run it again just before a demo, because the dates are relative to today.
+1. **Database.** Create a Neon project (Singapore) and copy its *pooled* connection string. Load the demo ward with `scripts\seed_remote.ps1`. Run it again just before a demo, because the dates are relative to today; registered accounts and their entries stay.
 2. **API project.** Root Directory `backend` (FastAPI is detected from `app/main.py`). Environment variables:
    - `DATABASE_URL`: the pooled connection string
    - `JALSETU_SECRET`: a long random value (`python -c "import secrets; print(secrets.token_urlsafe(32))"`)
    - `JALSETU_ENV`: `production`
-   - Groq, Gnani and Twilio keys are optional, as they are locally.
+   - Groq, Gnani and Twilio keys are optional, as they are locally. `JALSETU_DEMO_LOGIN=0` hides the demo accounts.
 3. **Web project.** Put the API project's address in `frontend/vercel.json`, then create a project with Root Directory `frontend`. It forwards `/api` and `/uploads` to the API, so users need only this one address.
 
 In production the API refuses to start with the development secret or SQLite, and it does not create or seed tables. Leak photos are stored in the database, and all times are Indian time wherever the server runs.
 
 Without Vercel: `npm run build`, then `SERVE_FRONTEND=1 uvicorn app.main:app` serves the app and the API from one process.
+
+## Accounts
+- **Sign-in:** a username or email with a password. New accounts are residents of the society they choose; nobody can register as a secretary or ward officer.
+- **Kept safely:** passwords only as scrypt hashes, sign-ins only as keyed hashes of random tokens (30 days, ended by signing out). Emails are never sent to other users. Eight wrong passwords pause that account for 15 minutes.
+- **Looking after them:** `scriptsccounts.ps1 list | role | password | delete`. There is no email service, so a forgotten password is reset there.
 
 ## Project layout
 ```
